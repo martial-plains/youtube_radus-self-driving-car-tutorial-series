@@ -9,8 +9,8 @@ pub type CarPtr = Car;
 pub struct Car {
     pub x: f64,
     pub y: f64,
-    pub width: f32,
-    pub height: f32,
+    pub width: f64,
+    pub height: f64,
     pub speed: f64,
     pub acceleration: f64,
     pub max_speed: f64,
@@ -20,7 +20,7 @@ pub struct Car {
 }
 
 impl Car {
-    pub fn new(x: f64, y: f64, width: f32, height: f32) -> Car {
+    pub fn new(x: f64, y: f64, width: f64, height: f64) -> Car {
         let max_speed = 3.0;
         let mut this = Car {
             x,
@@ -50,10 +50,10 @@ impl Car {
         ctx.rotate(-self.angle).unwrap();
         ctx.begin_path();
         ctx.rect(
-            -(self.width as f64) / 2.0,
-            -(self.height as f64) / 2.0,
-            self.width as f64,
-            self.height as f64,
+            -self.width / 2.0,
+            -self.height / 2.0,
+            self.width,
+            self.height,
         );
         ctx.fill();
         ctx.restore();
@@ -63,24 +63,31 @@ impl Car {
         if self.controls.borrow_mut().forward {
             self.speed += self.acceleration;
         }
+
         if self.controls.borrow_mut().reverse {
             self.speed -= self.acceleration;
         }
+
         if self.speed > self.max_speed {
             self.speed = self.max_speed;
         }
+
         if self.speed < -self.max_speed / 2.0 {
             self.speed = -self.max_speed / 2.0;
         }
+
         if self.speed > 0.0 {
             self.speed -= self.friction;
         }
+
         if self.speed < 0.0 {
             self.speed += self.friction;
         }
+
         if self.speed.abs() < self.friction {
             self.speed = 0.0;
         }
+
         if self.speed != 0.0 {
             let flip = if self.speed > 0.0 { 1.0 } else { -1.0 };
 

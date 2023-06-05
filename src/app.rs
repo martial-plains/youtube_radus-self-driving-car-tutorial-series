@@ -6,7 +6,10 @@ use wasm_bindgen::JsCast;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 use yew::{html, Component};
 
-use crate::car::{Car, CarPtr};
+use crate::{
+    car::{Car, CarPtr},
+    road::Road,
+};
 
 #[derive(Debug, Default)]
 pub enum Msg {
@@ -20,6 +23,7 @@ pub struct App {
     car_canvas: Option<HtmlCanvasElement>,
     car_ctx: Option<CanvasRenderingContext2d>,
     car: CarPtr,
+    road: Road,
     animation: Option<AnimationFrame>,
 }
 
@@ -28,10 +32,17 @@ impl App {
         self.car.update();
 
         if let Some(canvas) = &self.car_canvas {
-            canvas.set_height(window().inner_height().unwrap().as_f64().unwrap() as u32)
-        }
-        if let Some(ctx) = &self.car_ctx {
-            self.car.draw(ctx);
+            canvas.set_height(window().inner_height().unwrap().as_f64().unwrap() as u32);
+
+            if let Some(ctx) = &self.car_ctx {
+                ctx.save();
+                ctx.translate(0.0, -self.car.y + canvas.height() as f64 * 0.7)
+                    .unwrap();
+                self.road.draw(ctx);
+                self.car.draw(ctx);
+
+                ctx.restore();
+            }
         }
     }
 }
@@ -79,6 +90,12 @@ impl Component for App {
                         .unwrap()
                         .dyn_into::<CanvasRenderingContext2d>()
                         .unwrap(),
+                );
+
+                self.road = Road::new(
+                    car_canvas.width() as f64 / 2.0,
+                    car_canvas.width() as f64 * 0.9,
+                    None,
                 );
             }
             self.car = Car::new(100.0, 100.0, 30.0, 50.0);
