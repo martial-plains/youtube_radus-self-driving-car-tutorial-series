@@ -1,6 +1,10 @@
 use web_sys::CanvasRenderingContext2d;
 
-use crate::controls::{Controls, ControlsPtr};
+use crate::{
+    controls::{Controls, ControlsPtr},
+    sensor::Sensor,
+    utils::{polys_intersect, Coord},
+};
 
 pub type CarPtr = Car;
 
@@ -16,7 +20,10 @@ pub struct Car {
     pub max_speed: f64,
     pub friction: f64,
     pub angle: f64,
+    pub damaged: bool,
     pub controls: ControlsPtr,
+    pub sensor: Sensor,
+    pub polygon: Vec<Coord>,
 }
 
 impl Car {
@@ -32,6 +39,7 @@ impl Car {
             max_speed,
             friction: 0.05,
             angle: 0.0,
+            sensor: Sensor::new(),
             ..Default::default()
         };
 
@@ -40,8 +48,14 @@ impl Car {
         this
     }
 
-    pub fn update(&mut self) {
-        self.r#move()
+    pub fn update(&mut self, road_borders: &[Vec<Coord>]) {
+        if !self.damaged {
+            self.r#move();
+            self.polygon = self.create_polygon();
+            self.damaged = self.assess_damage(road_borders)
+        }
+
+        self.sensor.update(self.clone(), road_borders)
     }
 
     pub fn draw(&mut self, ctx: &CanvasRenderingContext2d) {
@@ -57,6 +71,7 @@ impl Car {
         );
         ctx.fill();
         ctx.restore();
+        self.sensor.draw(ctx);
     }
 
     fn r#move(&mut self) {
@@ -101,5 +116,37 @@ impl Car {
 
         self.x -= self.angle.sin() * self.speed;
         self.y -= self.angle.cos() * self.speed;
+    }
+
+    fn create_polygon(&self) -> Vec<Coord> {
+        let mut points = Vec::new();
+        let width = self.width;
+        let height = self.height;
+        let rad = width.hypot(height) / 2.0;
+        let alpha = width.atan2(height);
+        points.push(Coord {
+            x: self.x - (self.angle - alpha).sin() * rad,
+            y: self.y - (self.angle - alpha).cos() * rad,
+        });
+        points.push(Coord {
+            x: self.x - (self.angle + alpha).sin() * rad,
+            y: self.y - (self.angle + alpha).cos() * rad,
+        });
+        points.push(Coord {
+            x: self.x - (self.angle + alpha).sin() * rad,
+            y: self.y - (self.angle + alpha).cos() * rad,
+        });
+
+        points
+    }
+
+    fn assess_damage(&self, road_borders: &[Vec<Coord>]) -> bool {
+        for road_border in road_borders {
+            if polys_intersect(&self.polygon, road_border) {
+                return true;
+            }
+        }
+
+        false
     }
 }

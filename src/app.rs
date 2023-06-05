@@ -29,7 +29,7 @@ pub struct App {
 
 impl App {
     fn animate(&mut self, _: f64) {
-        self.car.update();
+        self.car.update(&self.road.borders);
 
         if let Some(canvas) = &self.car_canvas {
             canvas.set_height(window().inner_height().unwrap().as_f64().unwrap() as u32);
@@ -98,7 +98,7 @@ impl Component for App {
                     None,
                 );
             }
-            self.car = Car::new(100.0, 100.0, 30.0, 50.0);
+            self.car = Car::new(self.road.get_late_center(1), 100.0, 30.0, 50.0);
         }
 
         {
