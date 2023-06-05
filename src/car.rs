@@ -4,6 +4,7 @@ use web_sys::CanvasRenderingContext2d;
 
 use crate::{
     controls::{ControlKind, Controls, ControlsPtr},
+    network::NeuralNetwork,
     sensor::Sensor,
     utils::{polys_intersect, Coord},
 };
@@ -26,6 +27,7 @@ pub struct Car {
     pub use_brain: bool,
     pub controls: ControlsPtr,
     pub sensor: Option<Sensor>,
+    pub brain: Option<NeuralNetwork>,
     pub polygon: Vec<Coord>,
 }
 
@@ -49,11 +51,15 @@ impl Car {
             max_speed,
             friction: 0.05,
             angle: 0.0,
+            use_brain: control_kind == ControlKind::AI,
             ..Default::default()
         };
 
         if !matches!(control_kind, ControlKind::Dummy) {
             this.sensor = Some(Sensor::new());
+            if let Some(sensor) = &mut this.sensor {
+                this.brain = Some(NeuralNetwork::new(vec![sensor.ray_count, 6, 4]))
+            }
         }
 
         this.controls = Controls::new(control_kind);
@@ -70,6 +76,24 @@ impl Car {
         let car = self.clone();
         if let Some(sensor) = &mut self.sensor {
             sensor.update(&car, road_borders, traffic);
+            let offsets = sensor
+                .readings
+                .iter()
+                .map(|s| match s {
+                    Some(s) => 1.0 - s.offset,
+                    None => 0.0,
+                })
+                .collect::<Vec<f64>>();
+            if let Some(brain) = &mut self.brain {
+                let outputs = brain.feed_forward(offsets);
+
+                if self.use_brain {
+                    self.controls.borrow_mut().forward = outputs[0] == 1.0;
+                    self.controls.borrow_mut().left = outputs[1] == 1.0;
+                    self.controls.borrow_mut().right = outputs[2] == 1.0;
+                    self.controls.borrow_mut().reverse = outputs[3] == 1.0;
+                }
+            }
         }
     }
 
