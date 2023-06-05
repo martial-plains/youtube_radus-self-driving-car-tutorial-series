@@ -1,4 +1,5 @@
 use gloo::{
+    console::console_dbg,
     render::{request_animation_frame, AnimationFrame},
     utils::{document, window},
 };
@@ -8,6 +9,7 @@ use yew::{html, Component};
 
 use crate::{
     car::{Car, CarPtr},
+    controls::ControlKind,
     road::Road,
 };
 
@@ -23,13 +25,19 @@ pub struct App {
     car_canvas: Option<HtmlCanvasElement>,
     car_ctx: Option<CanvasRenderingContext2d>,
     car: CarPtr,
+    traffic: Vec<CarPtr>,
     road: Road,
     animation: Option<AnimationFrame>,
 }
 
 impl App {
     fn animate(&mut self, _: f64) {
-        self.car.update(&self.road.borders);
+        for i in 0..self.traffic.len() {
+            self.traffic[i].update(&self.road.borders, &Vec::new());
+
+            // console_dbg!(self.traffic[i]);
+        }
+        self.car.update(&self.road.borders, &self.traffic);
 
         if let Some(canvas) = &self.car_canvas {
             canvas.set_height(window().inner_height().unwrap().as_f64().unwrap() as u32);
@@ -39,7 +47,11 @@ impl App {
                 ctx.translate(0.0, -self.car.y + canvas.height() as f64 * 0.7)
                     .unwrap();
                 self.road.draw(ctx);
-                self.car.draw(ctx);
+                for i in 0..self.traffic.len() {
+                    self.traffic[i].draw(ctx, "red");
+                }
+
+                self.car.draw(ctx, "blue");
 
                 ctx.restore();
             }
@@ -98,7 +110,23 @@ impl Component for App {
                     None,
                 );
             }
-            self.car = Car::new(self.road.get_late_center(1), 100.0, 30.0, 50.0);
+            self.car = Car::new(
+                self.road.get_late_center(1),
+                100.0,
+                30.0,
+                50.0,
+                ControlKind::Keys,
+                None,
+            );
+
+            self.traffic = vec![Car::new(
+                self.road.get_late_center(1),
+                -100.0,
+                30.0,
+                50.0,
+                ControlKind::Dummy,
+                Some(2.0),
+            )];
         }
 
         {

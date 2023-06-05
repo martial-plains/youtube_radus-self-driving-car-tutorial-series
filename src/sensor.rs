@@ -1,9 +1,8 @@
-use gloo::console::console_dbg;
 use wasm_bindgen::JsValue;
 use web_sys::CanvasRenderingContext2d;
 
 use crate::{
-    car::Car,
+    car::{Car, CarPtr},
     utils::{get_intersection, lerp, Coord, CoordWithOffset},
 };
 
@@ -28,12 +27,12 @@ impl Sensor {
         }
     }
 
-    pub fn update(&mut self, car: Car, road_borders: &[Vec<Coord>]) {
+    pub fn update(&mut self, car: &Car, road_borders: &[Vec<Coord>], traffic: &[CarPtr]) {
         self.cast_rays(car);
         self.readings = Vec::new();
         for i in 0..self.rays.len() {
             self.readings
-                .push(Self::get_reading(self.rays[i], road_borders));
+                .push(Self::get_reading(self.rays[i], road_borders, traffic));
         }
     }
 
@@ -63,7 +62,11 @@ impl Sensor {
         }
     }
 
-    fn get_reading(ray: (Coord, Coord), road_borders: &[Vec<Coord>]) -> Option<CoordWithOffset> {
+    fn get_reading(
+        ray: (Coord, Coord),
+        road_borders: &[Vec<Coord>],
+        traffic: &[CarPtr],
+    ) -> Option<CoordWithOffset> {
         let mut touches = Vec::new();
 
         for border in road_borders {
@@ -71,6 +74,17 @@ impl Sensor {
 
             if let Some(touch) = touch {
                 touches.push(touch);
+            }
+        }
+
+        for car in traffic {
+            let poly = &car.polygon;
+
+            for j in 0..poly.len() {
+                let value = get_intersection(ray.0, ray.1, poly[j], poly[(j + 1) % poly.len()]);
+                if let Some(value) = value {
+                    touches.push(value);
+                }
             }
         }
 
@@ -87,7 +101,7 @@ impl Sensor {
         }
     }
 
-    fn cast_rays(&mut self, car: Car) {
+    fn cast_rays(&mut self, car: &Car) {
         self.rays = Vec::new();
 
         for i in 0..self.ray_count {

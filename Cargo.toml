@@ -8,10 +8,6 @@ edition = "2021"
 [profile.release]
 debug = true
 
-[features]
-default = ["part_two"]
-part_one = []
-part_two = ["part_one"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]

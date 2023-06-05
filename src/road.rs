@@ -36,7 +36,7 @@ impl Road {
             y: bottom,
         };
 
-        let mut borders = vec![vec![top_left, bottom_left], vec![top_right, bottom_right]];
+        let borders = vec![vec![top_left, bottom_left], vec![top_right, bottom_right]];
 
         Self {
             x,

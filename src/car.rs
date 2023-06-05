@@ -1,7 +1,9 @@
+use gloo::console::console_dbg;
+use wasm_bindgen::JsValue;
 use web_sys::CanvasRenderingContext2d;
 
 use crate::{
-    controls::{Controls, ControlsPtr},
+    controls::{ControlKind, Controls, ControlsPtr},
     sensor::Sensor,
     utils::{polys_intersect, Coord},
 };
@@ -21,14 +23,22 @@ pub struct Car {
     pub friction: f64,
     pub angle: f64,
     pub damaged: bool,
+    pub use_brain: bool,
     pub controls: ControlsPtr,
-    pub sensor: Sensor,
+    pub sensor: Option<Sensor>,
     pub polygon: Vec<Coord>,
 }
 
 impl Car {
-    pub fn new(x: f64, y: f64, width: f64, height: f64) -> Car {
-        let max_speed = 3.0;
+    pub fn new(
+        x: f64,
+        y: f64,
+        width: f64,
+        height: f64,
+        control_kind: ControlKind,
+        max_speed: Option<f64>,
+    ) -> Car {
+        let max_speed = max_speed.unwrap_or(3.0);
         let mut this = Car {
             x,
             y,
@@ -39,39 +49,47 @@ impl Car {
             max_speed,
             friction: 0.05,
             angle: 0.0,
-            sensor: Sensor::new(),
             ..Default::default()
         };
 
-        this.controls = Controls::new();
+        if !matches!(control_kind, ControlKind::Dummy) {
+            this.sensor = Some(Sensor::new());
+        }
+
+        this.controls = Controls::new(control_kind);
 
         this
     }
 
-    pub fn update(&mut self, road_borders: &[Vec<Coord>]) {
+    pub fn update(&mut self, road_borders: &[Vec<Coord>], traffic: &[CarPtr]) {
         if !self.damaged {
             self.r#move();
             self.polygon = self.create_polygon();
-            self.damaged = self.assess_damage(road_borders)
+            self.damaged = self.assess_damage(road_borders, traffic)
         }
-
-        self.sensor.update(self.clone(), road_borders)
+        let car = self.clone();
+        if let Some(sensor) = &mut self.sensor {
+            sensor.update(&car, road_borders, traffic);
+        }
     }
 
-    pub fn draw(&mut self, ctx: &CanvasRenderingContext2d) {
-        ctx.save();
-        ctx.translate(self.x, self.y).unwrap();
-        ctx.rotate(-self.angle).unwrap();
+    pub fn draw(&mut self, ctx: &CanvasRenderingContext2d, color: &str) {
+        if self.damaged {
+            ctx.set_fill_style(&JsValue::from_str("gray"));
+        } else {
+            ctx.set_fill_style(&JsValue::from_str(color));
+        }
         ctx.begin_path();
-        ctx.rect(
-            -self.width / 2.0,
-            -self.height / 2.0,
-            self.width,
-            self.height,
-        );
+        ctx.move_to(self.polygon[0].x, self.polygon[0].y);
+        for i in 1..self.polygon.len() {
+            ctx.line_to(self.polygon[i].x, self.polygon[i].y);
+        }
+
         ctx.fill();
-        ctx.restore();
-        self.sensor.draw(ctx);
+
+        if let Some(sensor) = &mut self.sensor {
+            sensor.draw(ctx);
+        }
     }
 
     fn r#move(&mut self) {
@@ -120,10 +138,8 @@ impl Car {
 
     fn create_polygon(&self) -> Vec<Coord> {
         let mut points = Vec::new();
-        let width = self.width;
-        let height = self.height;
-        let rad = width.hypot(height) / 2.0;
-        let alpha = width.atan2(height);
+        let rad = self.width.hypot(self.height) / 2.0;
+        let alpha = self.width.atan2(self.height);
         points.push(Coord {
             x: self.x - (self.angle - alpha).sin() * rad,
             y: self.y - (self.angle - alpha).cos() * rad,
@@ -133,16 +149,26 @@ impl Car {
             y: self.y - (self.angle + alpha).cos() * rad,
         });
         points.push(Coord {
-            x: self.x - (self.angle + alpha).sin() * rad,
-            y: self.y - (self.angle + alpha).cos() * rad,
+            x: self.x - (std::f64::consts::PI + self.angle - alpha).sin() * rad,
+            y: self.y - (std::f64::consts::PI + self.angle - alpha).cos() * rad,
+        });
+        points.push(Coord {
+            x: self.x - (std::f64::consts::PI + self.angle + alpha).sin() * rad,
+            y: self.y - (std::f64::consts::PI + self.angle + alpha).cos() * rad,
         });
 
         points
     }
 
-    fn assess_damage(&self, road_borders: &[Vec<Coord>]) -> bool {
+    fn assess_damage(&self, road_borders: &[Vec<Coord>], traffic: &[CarPtr]) -> bool {
         for road_border in road_borders {
             if polys_intersect(&self.polygon, road_border) {
+                return true;
+            }
+        }
+
+        for t in traffic {
+            if polys_intersect(&self.polygon, &t.polygon) {
                 return true;
             }
         }

@@ -11,6 +11,8 @@ pub type ControlsPtr = Arc<RefCell<Controls>>;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum ControlKind {
     Keys,
+    Dummy,
+    AI,
 }
 
 #[repr(C)]
@@ -23,12 +25,16 @@ pub struct Controls {
 }
 
 impl Controls {
-    pub fn new() -> ControlsPtr {
+    pub fn new(kind: ControlKind) -> ControlsPtr {
         let controls = Self::default();
 
         let controls_ptr = Arc::new(RefCell::new(controls));
 
-        Self::add_keyboard_listeners(&controls_ptr);
+        match kind {
+            ControlKind::Keys => Self::add_keyboard_listeners(&controls_ptr),
+            ControlKind::Dummy => controls_ptr.borrow_mut().forward = true,
+            ControlKind::AI => (),
+        }
 
         controls_ptr
     }
