@@ -3,6 +3,8 @@ use std::vec;
 use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 
+use crate::utils::lerp;
+
 #[repr(C)]
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Level {
@@ -93,5 +95,30 @@ impl NeuralNetwork {
         }
 
         outputs
+    }
+
+    pub fn mutate(&mut self, amount: Option<usize>) {
+        let mut rng = thread_rng();
+        let amount = amount.unwrap_or(1);
+
+        self.levels.iter_mut().for_each(|level| {
+            for i in 0..level.biases.len() {
+                level.biases[i] = lerp(
+                    level.biases[i],
+                    rng.gen_range(0.0..1.0) * 2.0 - 1.0,
+                    amount as f64,
+                )
+            }
+
+            for i in 0..level.weights.len() {
+                for j in 0..level.weights[i].len() {
+                    level.weights[i][j] = lerp(
+                        level.weights[i][j],
+                        rng.gen_range(0.0..1.0) * 2.0 - 1.0,
+                        amount as f64,
+                    )
+                }
+            }
+        });
     }
 }
