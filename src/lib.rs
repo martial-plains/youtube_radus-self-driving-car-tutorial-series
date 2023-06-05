@@ -5,3 +5,4 @@ pub mod network;
 pub mod road;
 pub mod sensor;
 pub mod utils;
+pub mod visualizer;

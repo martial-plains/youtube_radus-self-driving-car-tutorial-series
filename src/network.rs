@@ -3,8 +3,6 @@ use std::vec;
 use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 
-use crate::utils::lerp;
-
 #[repr(C)]
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Level {

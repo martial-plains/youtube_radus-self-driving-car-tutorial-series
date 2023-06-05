@@ -1,4 +1,5 @@
-use gloo::console::console_dbg;
+use std::f64::consts::PI;
+
 use wasm_bindgen::JsValue;
 use web_sys::CanvasRenderingContext2d;
 
@@ -25,9 +26,9 @@ pub struct Car {
     pub angle: f64,
     pub damaged: bool,
     pub use_brain: bool,
-    pub controls: ControlsPtr,
     pub sensor: Option<Sensor>,
     pub brain: Option<NeuralNetwork>,
+    pub controls: ControlsPtr,
     pub polygon: Vec<Coord>,
 }
 
@@ -73,6 +74,7 @@ impl Car {
             self.polygon = self.create_polygon();
             self.damaged = self.assess_damage(road_borders, traffic)
         }
+
         let car = self.clone();
         if let Some(sensor) = &mut self.sensor {
             sensor.update(&car, road_borders, traffic);
@@ -84,6 +86,7 @@ impl Car {
                     None => 0.0,
                 })
                 .collect::<Vec<f64>>();
+
             if let Some(brain) = &mut self.brain {
                 let outputs = brain.feed_forward(offsets);
 
@@ -173,12 +176,12 @@ impl Car {
             y: self.y - (self.angle + alpha).cos() * rad,
         });
         points.push(Coord {
-            x: self.x - (std::f64::consts::PI + self.angle - alpha).sin() * rad,
-            y: self.y - (std::f64::consts::PI + self.angle - alpha).cos() * rad,
+            x: self.x - (PI + self.angle - alpha).sin() * rad,
+            y: self.y - (PI + self.angle - alpha).cos() * rad,
         });
         points.push(Coord {
-            x: self.x - (std::f64::consts::PI + self.angle + alpha).sin() * rad,
-            y: self.y - (std::f64::consts::PI + self.angle + alpha).cos() * rad,
+            x: self.x - (PI + self.angle + alpha).sin() * rad,
+            y: self.y - (PI + self.angle + alpha).cos() * rad,
         });
 
         points

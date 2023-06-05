@@ -48,11 +48,11 @@ pub fn get_intersection(a: Coord, b: Coord, c: Coord, d: Coord) -> Option<CoordW
     None
 }
 
-pub fn get_rgba(value: i32) -> String {
-    let alpha: i32 = value.abs();
-    let r = if value < 0 { 0 } else { 255 };
+pub fn get_rgba(value: f64) -> String {
+    let alpha = value.abs();
+    let r = if value < 0.0 { 0.0 } else { 255.0 };
     let g = r;
-    let b = if value > 0 { 0 } else { 255 };
+    let b = if value > 0.0 { 0.0 } else { 255.0 };
 
     format!("rgba({r},{g},{b},{alpha})")
 }

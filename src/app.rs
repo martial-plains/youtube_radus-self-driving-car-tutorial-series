@@ -3,13 +3,14 @@ use gloo::{
     utils::{document, window},
 };
 use wasm_bindgen::JsCast;
-use web_sys::{CanvasRenderingContext2d, HtmlButtonElement, HtmlCanvasElement};
+use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 use yew::{html, Component};
 
 use crate::{
     car::{Car, CarPtr},
     controls::ControlKind,
     road::Road,
+    visualizer,
 };
 
 #[derive(Debug, Default)]
@@ -32,7 +33,7 @@ pub struct App {
 }
 
 impl App {
-    fn animate(&mut self, _: f64) {
+    fn animate(&mut self, time: f64) {
         let car_canvas = match &self.car_canvas {
             Some(value) => value,
             None => return,
@@ -76,6 +77,10 @@ impl App {
         self.car.draw(car_ctx, "blue");
 
         car_ctx.restore();
+        network_ctx.set_line_dash_offset(-time / 50.0);
+        if let Some(brain) = &self.car.brain {
+            visualizer::draw_network(network_ctx, brain);
+        }
     }
 }
 
