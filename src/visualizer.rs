@@ -48,7 +48,7 @@ pub fn draw_network(ctx: &CanvasRenderingContext2d, network: &NeuralNetwork) {
             width,
             level_height,
             if i == network.levels.len() - 1 {
-                vec!["🠉", "🠈", "🠊", "🠋"]
+                vec!["⬆️", "⬅️", "➡️", "⬇️"]
             } else {
                 vec![]
             },
