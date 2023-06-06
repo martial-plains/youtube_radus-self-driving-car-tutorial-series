@@ -1,7 +1,9 @@
 use std::f64::consts::PI;
 
-use wasm_bindgen::JsValue;
-use web_sys::CanvasRenderingContext2d;
+use gloo::utils::document;
+use js_sys::Function;
+use wasm_bindgen::{prelude::Closure, JsCast, JsValue};
+use web_sys::{CanvasRenderingContext2d, Element, HtmlCanvasElement, HtmlImageElement};
 
 use crate::{
     controls::{ControlKind, Controls, ControlsPtr},
@@ -29,6 +31,8 @@ pub struct Car {
     pub sensor: Option<Sensor>,
     pub brain: Option<NeuralNetwork>,
     pub controls: ControlsPtr,
+    pub img: Option<HtmlImageElement>,
+    pub mask: Option<Element>,
     pub polygon: Vec<Coord>,
 }
 
@@ -40,7 +44,9 @@ impl Car {
         height: f64,
         control_kind: ControlKind,
         max_speed: Option<f64>,
+        color: Option<&str>,
     ) -> Car {
+        let color = color.unwrap_or("blue");
         let max_speed = max_speed.unwrap_or(3.0);
         let mut this = Car {
             x,
@@ -64,6 +70,53 @@ impl Car {
         }
 
         this.controls = Controls::new(control_kind);
+
+        this.img = HtmlImageElement::new().ok();
+        this.img.as_mut().unwrap().set_src("car.png");
+
+        this.mask = document().create_element("canvas").ok();
+        let mask_elmt = {
+            let elmt = this.mask.as_ref().unwrap();
+
+            elmt.dyn_ref::<HtmlCanvasElement>().unwrap()
+        };
+
+        mask_elmt.set_width(width as u32);
+        mask_elmt.set_height(height as u32);
+
+        let mask_ctx = mask_elmt
+            .get_context("2d")
+            .unwrap()
+            .unwrap()
+            .dyn_into::<CanvasRenderingContext2d>()
+            .unwrap();
+
+        let onload = {
+            let color = color.clone().to_string();
+            let img = this.img.clone().unwrap();
+            let width = this.width;
+            let height = this.height;
+
+            Closure::<dyn Fn()>::new(move || {
+                mask_ctx.set_fill_style(&JsValue::from_str(&color));
+                mask_ctx.rect(0.0, 0.0, width, height);
+                mask_ctx.fill();
+
+                mask_ctx
+                    .set_global_composite_operation("destination-atop")
+                    .unwrap();
+                mask_ctx
+                    .draw_image_with_html_image_element_and_dw_and_dh(&img, 0.0, 0.0, width, height)
+                    .unwrap();
+            })
+            .into_js_value()
+            .dyn_into::<Function>()
+            .unwrap()
+        };
+
+        if let Some(img) = &mut this.img {
+            img.set_onload(Some(&onload))
+        }
 
         this
     }
@@ -100,23 +153,45 @@ impl Car {
         }
     }
 
-    pub fn draw(&mut self, ctx: &CanvasRenderingContext2d, color: &str) {
-        if self.damaged {
-            ctx.set_fill_style(&JsValue::from_str("gray"));
-        } else {
-            ctx.set_fill_style(&JsValue::from_str(color));
-        }
-        ctx.begin_path();
-        ctx.move_to(self.polygon[0].x, self.polygon[0].y);
-        for i in 1..self.polygon.len() {
-            ctx.line_to(self.polygon[i].x, self.polygon[i].y);
+    pub fn draw(&mut self, ctx: &CanvasRenderingContext2d, draw_sensor: Option<bool>) {
+        let draw_sensor = draw_sensor.unwrap_or_default();
+
+        if let Some(sensor) = &self.sensor {
+            if draw_sensor {
+                sensor.draw(ctx);
+            }
         }
 
-        ctx.fill();
-
-        if let Some(sensor) = &mut self.sensor {
-            sensor.draw(ctx);
+        ctx.save();
+        ctx.translate(self.x, self.y).unwrap();
+        ctx.rotate(-self.angle).unwrap();
+        if !self.damaged {
+            let mask = self
+                .mask
+                .as_ref()
+                .unwrap()
+                .dyn_ref::<HtmlCanvasElement>()
+                .unwrap();
+            ctx.draw_image_with_html_canvas_element_and_dw_and_dh(
+                mask,
+                -self.width / 2.0,
+                -self.height / 2.0,
+                self.width,
+                self.height,
+            )
+            .unwrap();
+            ctx.set_global_composite_operation("multiply").unwrap();
         }
+        ctx.draw_image_with_html_image_element_and_dw_and_dh(
+            &self.img.clone().unwrap(),
+            -self.width / 2.0,
+            -self.height / 2.0,
+            self.width,
+            self.height,
+        )
+        .unwrap();
+
+        ctx.restore();
     }
 
     fn r#move(&mut self) {

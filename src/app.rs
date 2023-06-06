@@ -11,6 +11,7 @@ use crate::{
     car::{Car, CarPtr},
     controls::ControlKind,
     road::Road,
+    utils::get_random_color,
     visualizer,
 };
 
@@ -48,6 +49,7 @@ impl App {
                 30.0,
                 50.0,
                 ControlKind::AI,
+                None,
                 None,
             ));
         }
@@ -134,19 +136,18 @@ impl App {
         self.road.draw(car_ctx);
 
         for i in 0..self.traffic.len() {
-            self.traffic[i].draw(car_ctx, "red");
+            self.traffic[i].draw(car_ctx, None);
         }
 
         car_ctx.set_global_alpha(0.2);
-
         for i in 0..self.cars.len() {
-            self.cars[i].draw(car_ctx, "blue");
+            self.cars[i].draw(car_ctx, None);
         }
 
         car_ctx.set_global_alpha(1.0);
 
         if let Some(best_car) = &mut self.best_car {
-            best_car.draw(car_ctx, "blue")
+            best_car.draw(car_ctx, Some(true))
         }
 
         car_ctx.restore();
@@ -253,7 +254,7 @@ impl Component for App {
                 );
             }
 
-            self.cars = self.generate_cars(1);
+            self.cars = self.generate_cars(100);
 
             self.traffic = vec![
                 Car::new(
@@ -263,6 +264,7 @@ impl Component for App {
                     50.0,
                     ControlKind::Dummy,
                     Some(2.0),
+                    Some(&get_random_color()),
                 ),
                 Car::new(
                     self.road.get_late_center(0),
@@ -271,6 +273,7 @@ impl Component for App {
                     50.0,
                     ControlKind::Dummy,
                     Some(2.0),
+                    Some(&get_random_color()),
                 ),
                 Car::new(
                     self.road.get_late_center(2),
@@ -279,6 +282,7 @@ impl Component for App {
                     50.0,
                     ControlKind::Dummy,
                     Some(2.0),
+                    Some(&get_random_color()),
                 ),
                 Car::new(
                     self.road.get_late_center(0),
@@ -287,6 +291,7 @@ impl Component for App {
                     50.0,
                     ControlKind::Dummy,
                     Some(2.0),
+                    Some(&get_random_color()),
                 ),
                 Car::new(
                     self.road.get_late_center(1),
@@ -295,6 +300,7 @@ impl Component for App {
                     50.0,
                     ControlKind::Dummy,
                     Some(2.0),
+                    Some(&get_random_color()),
                 ),
                 Car::new(
                     self.road.get_late_center(1),
@@ -303,6 +309,7 @@ impl Component for App {
                     50.0,
                     ControlKind::Dummy,
                     Some(2.0),
+                    Some(&get_random_color()),
                 ),
                 Car::new(
                     self.road.get_late_center(2),
@@ -311,6 +318,7 @@ impl Component for App {
                     50.0,
                     ControlKind::Dummy,
                     Some(2.0),
+                    Some(&get_random_color()),
                 ),
             ];
 
