@@ -327,10 +327,14 @@ impl Component for App {
             if let Some(storage) = &self.storage {
                 if let Ok(Some(item)) = storage.get_item("best_brain") {
                     for i in 0..self.cars.len() {
-                        self.cars[i].brain = gloo::utils::format::JsValueSerdeExt::into_serde(
-                            &JSON::parse(&item).unwrap(),
-                        )
-                        .unwrap()
+                        if i == 0 {
+                            self.cars[i].brain = gloo::utils::format::JsValueSerdeExt::into_serde(
+                                &JSON::parse(&item).unwrap(),
+                            )
+                            .unwrap()
+                        } else if let Some(brain) = &mut self.cars[i].brain {
+                            brain.mutate(Some(0.1))
+                        }
                     }
                 }
             }

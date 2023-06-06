@@ -97,17 +97,13 @@ impl NeuralNetwork {
         outputs
     }
 
-    pub fn mutate(&mut self, amount: Option<usize>) {
+    pub fn mutate(&mut self, amount: Option<f64>) {
         let mut rng = thread_rng();
-        let amount = amount.unwrap_or(1);
+        let amount = amount.unwrap_or(1.0);
 
         self.levels.iter_mut().for_each(|level| {
             for i in 0..level.biases.len() {
-                level.biases[i] = lerp(
-                    level.biases[i],
-                    rng.gen_range(0.0..1.0) * 2.0 - 1.0,
-                    amount as f64,
-                )
+                level.biases[i] = lerp(level.biases[i], rng.gen_range(0.0..1.0) * 2.0 - 1.0, amount)
             }
 
             for i in 0..level.weights.len() {
@@ -115,7 +111,7 @@ impl NeuralNetwork {
                     level.weights[i][j] = lerp(
                         level.weights[i][j],
                         rng.gen_range(0.0..1.0) * 2.0 - 1.0,
-                        amount as f64,
+                        amount,
                     )
                 }
             }
