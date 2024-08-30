@@ -92,7 +92,7 @@ impl Car {
             .unwrap();
 
         let onload = {
-            let color = color.clone().to_string();
+            let color = color.to_string();
             let img = this.img.clone().unwrap();
             let width = this.width;
             let height = this.height;

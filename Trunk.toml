@@ -2,7 +2,7 @@
 target = "index.html"
 dist = "dist"
 release = false
-public_url = "/self-driving-car-v1/" # for {username}.github.io
+public_url = "/youtube_radus-self-driving-car-tutorial-series/" # for {username}.github.io
 
 [watch]
 watch = ["index.html", "src/", "style/", "public/"]

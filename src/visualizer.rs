@@ -14,7 +14,9 @@ pub fn draw_network(ctx: &CanvasRenderingContext2d, network: &NeuralNetwork) {
     let left = margin;
     let top = margin;
 
-    let Some(canvas) = ctx.canvas() else { panic!("Could not get canvas") };
+    let Some(canvas) = ctx.canvas() else {
+        panic!("Could not get canvas")
+    };
 
     let width = canvas.width() as f64 - margin * 2.0;
     let height = canvas.height() as f64 - margin * 2.0;
@@ -142,7 +144,7 @@ pub fn draw_level(
     }
 }
 
-pub fn get_node_x(nodes: &Vec<f64>, index: f64, left: f64, right: f64) -> f64 {
+pub fn get_node_x(nodes: &[f64], index: f64, left: f64, right: f64) -> f64 {
     lerp(
         left,
         right,

@@ -1,11 +1,11 @@
-use std::{cell::RefCell, sync::Arc};
+use std::{cell::RefCell, rc::Rc};
 
 use gloo::utils::document;
 use js_sys::Function;
 use wasm_bindgen::{prelude::Closure, JsCast};
 use web_sys::KeyboardEvent;
 
-pub type ControlsPtr = Arc<RefCell<Controls>>;
+pub type ControlsPtr = Rc<RefCell<Controls>>;
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -28,7 +28,7 @@ impl Controls {
     pub fn new(kind: ControlKind) -> ControlsPtr {
         let controls = Self::default();
 
-        let controls_ptr = Arc::new(RefCell::new(controls));
+        let controls_ptr = Rc::new(RefCell::new(controls));
 
         match kind {
             ControlKind::Keys => Self::add_keyboard_listeners(&controls_ptr),
@@ -39,7 +39,7 @@ impl Controls {
         controls_ptr
     }
 
-    fn add_keyboard_listeners(this: &Arc<RefCell<Self>>) {
+    fn add_keyboard_listeners(this: &ControlsPtr) {
         let keydown = {
             let this = this.clone();
             Closure::<dyn FnMut(KeyboardEvent)>::new(move |event: KeyboardEvent| {
