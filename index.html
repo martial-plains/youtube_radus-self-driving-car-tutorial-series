@@ -1,17 +1,31 @@
-<!DOCTYPE html><html lang="en"><head>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" />
     <!-- <link data-trunk rel="rust" data-wasm-opt="0" data-keep-debug=true /> -->
-    <script type="module">import init from '/self-driving-car-v1/self-driving-car-c4473244e79c9f70.js';init('/self-driving-car-v1/self-driving-car-c4473244e79c9f70_bg.wasm');</script>
-    <link rel="icon" href="/self-driving-car-v1/favicon-e9cbd8f50cc65bf2.ico">
     
-    <link rel="stylesheet" href="/self-driving-car-v1/main-babb33bc41867196.css">
+<script type="module" nonce="22SfQNUijCROTMo+EDjljw==">
+import init, * as bindings from '/youtube_radus-self-driving-car-tutorial-series/self-driving-car-79ed767439f3b203.js';
+const wasm = await init('/youtube_radus-self-driving-car-tutorial-series/self-driving-car-79ed767439f3b203_bg.wasm');
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script>
+    <link rel="icon" href="/youtube_radus-self-driving-car-tutorial-series/favicon-e9cbd8f50cc65bf2.ico" integrity="sha384&#x2D;YobgLXwtz0GhXVUTHml49p32guapVFlEG8UpQdDVN3kekOqkQi&#x2B;qSXEpwp&#x2B;yM4BW"/>
+    
+    <link rel="stylesheet" href="/youtube_radus-self-driving-car-tutorial-series/main-babb33bc41867196.css" integrity="sha384&#x2D;EgyuAx8Psl8ENR63r9jOFF5zFAjNeBqo&#x2B;YGIu609K0hx3&#x2B;PF4QS1Dv4BtHVq1o5F"/>
     <title>Self Driving Car - No Libraries</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!-- INJECT HEAD -->
 
-<link rel="preload" href="/self-driving-car-v1/self-driving-car-c4473244e79c9f70_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
-<link rel="modulepreload" href="/self-driving-car-v1/self-driving-car-c4473244e79c9f70.js"></head>
+<link rel="modulepreload" href="/youtube_radus-self-driving-car-tutorial-series/self-driving-car-79ed767439f3b203.js" crossorigin=anonymous integrity="sha384-XShRrqyuw0irpd+RnsWhm9yk/KHNr6LBO9/2UUEILKLd90ltO06xeMYTddeQ+v3S">
+<link rel="preload" href="/youtube_radus-self-driving-car-tutorial-series/self-driving-car-79ed767439f3b203_bg.wasm" crossorigin=anonymous integrity="sha384-Mv+pkX7+ZmEFVJsLd8QemqOC/iSnMKrCDFamKQjWgUNdkXOEkpK9Zndm+Q9LNscO" as="fetch" type="application/wasm"></head>
 
 <body>
     <!-- INJECT BODY -->
@@ -40,6 +54,6 @@
         }(window.location))
     </script>
     <!-- End Single Page Apps for GitHub Pages -->
+</body>
 
-
-</body></html>
+</html>
