@@ -8,7 +8,6 @@ public_url = "/youtube_radus-self-driving-car-tutorial-series/" # for {username}
 watch = ["index.html", "src/", "style/", "public/"]
 
 [clean]
-dist = "dist"
 
 [[hooks]]
 stage = "pre_build"
