@@ -27,7 +27,7 @@ jobs:
     - name: run trunk
       run: |
         rustup override set nightly 
-        trunk build --release
+        trunk build
 
     # deploy for github.io
     - name: GitHub Pages action
